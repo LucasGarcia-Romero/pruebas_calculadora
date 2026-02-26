@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <style>
+  .container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  img {
+    width: 100px;
+    height:100px;
+  }
+  
+    
+  .text {
+    font-size: 40px;
+    padding-left: 20px;
+
+    float: left;
+  }
+
+ </style>
+    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+
+    <script>
+	
+	
+	function listFiles(dirPath)
+	{
+		var sendPost=$.post(
+		"/listFiles",
+
+			{directory: dirPath,secondParam: "second"},
+			function(data) 
+			{
+			   var json=JSON.parse(data);
+			   //alert('resultado ' + JSON.stringify(json));
+				var div0 = document.getElementById("directoryList");
+				while (div0.firstChild) {
+					div0.removeChild(div0.lastChild);
+				}
+				for (let i in json.files) {
+				
+				 var div1=document.createElement("div");
+				 div1.setAttribute("class","container");
+				 var div2_1=document.createElement("div");
+				 div2_1.setAttribute("class","image");
+				 var div2_2=document.createElement("div");
+				 div2_2.setAttribute("class","text");
+
+				 var img=document.createElement("img");
+				 img.setAttribute("src","folder.png");
+				 
+ 				 var text=document.createElement("span");
+
+				 if(json.files[i].type=="DIR")
+				 {
+					img.setAttribute("onClick","listFiles(\""+json.files[i].parent+"/"+json.files[i].name+"\")");            
+	 				text.innerText=json.files[i].name;
+				 }
+				 if(json.files[i].type=="PARENTDIR")
+				 {	
+				    img.setAttribute("onClick","listFiles(\""+json.files[i].parent+"/\")");            
+					text.innerText="Previous folder";
+				 }
+
+ 				 div2_1.appendChild(img);
+				 div2_2.appendChild(text);
+				 div1.appendChild(div2_1);
+				 div1.appendChild(div2_2);
+				 div0.appendChild(div1);		 
+				}
+			}
+    )
+	};
+	
+    $(document).ready(function() {
+        var user="userPrueba";
+        listFiles("wavsDir/");
+    });
+ 
+    </script>
+
+</head>
+<body>
+<div id="directoryList">
+  
+</div>
+</body>

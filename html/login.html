@@ -1,0 +1,64 @@
+<head>
+<style>
+#popup {
+    width:160px;
+    height:160px;
+    padding:20px;
+    background-color:gray;    
+    position:absolute;
+    top:0px;
+    left:0px;
+    display:block;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<script>
+    function done() { 
+		//document.getElementById("popup").style.display = "none";
+		var vuser = document.getElementById("user").value;
+		var vpassword = document.getElementById("pass").value;
+
+
+		var vres="";
+		var asd=$.post(
+		"/calculadora",
+
+			{user:vuser,pass:vpassword},
+			function(data) {
+			   alert('page content: ' );
+			  
+			}
+		)
+		  .done(function() {
+			alert( "second success" );
+		  })
+		  .fail(function(xhr, status, error) {
+			alert( error );
+		  })
+		  
+		asd.always(function() {
+		alert( "second finished" );
+		});
+
+    //DO STUFF WITH PASSWORD HERE
+	};
+
+	function showPopup() {
+		 document.getElementById("popup").style.display = "block";
+	}
+	function setCookie(){
+            var exdate = new Date();
+            document.cookie = "BIRDEEPSESSION=birdeep";
+    }
+</script>
+</head>
+<body>
+
+	<div id="popup">
+		<div>Enter Password:</div>
+        <p> User<input id="user" type="input"/></p>
+		<p> Password<input id="pass" type="password"/></p>
+		<button onclick="done()">Done</button>    
+	</div>
+</body>
