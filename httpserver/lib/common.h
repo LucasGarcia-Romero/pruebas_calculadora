@@ -1,135 +1,112 @@
 #pragma once
-#define _CRT_SECURE_NO_WARNINGS
-#include <sys/types.h>
-#ifdef __linux__
 
+// Cross-platform common includes and helpers for the HTTP server (Linux/ARM64 + Windows)
 
-#include <sys/socket.h>
-#include <arpa/inet.h>
+#include <cstdint>
+#include <cstring>
 
-#include <netinet/in.h>
-#include <unistd.h>
-
-#endif 
-#ifdef _MSC_VER
-#include <winsock2.h>
-#include <Ws2tcpip.h>
-
-#define MSG_NOSIGNAL 0
-#endif
-
-#include <string.h>
-#include <list>
-#include <map>
-#include <vector>
-#include <thread>
-#include <mutex>
-#include <string>
-#include <chrono>
 #include <iostream>
-#include <fstream>
-#include <cctype>
-#include <iomanip>
+#include <string>
 #include <sstream>
-#include <regex>
+#include <fstream>
 #include <filesystem>
 
-#define DEBUG
+#include <vector>
+#include <map>
+#include <list>
 
-#ifdef DEBUG
+#include <mutex>
+#include <thread>
+#include <chrono>
 
-#define DEBUG_MSG(...)  printf(__VA_ARGS__);
+// Sockets
+#ifdef _WIN32
+  #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+  #endif
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#else
+  #include <sys/types.h>
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <arpa/inet.h>
+  #include <unistd.h>
+  #include <signal.h>
 #endif
-using namespace std;
+
+// Provide Windows-style integer aliases used in the original code when compiling on Linux
+#ifndef _WIN32
+  using __int64 = int64_t;
+  using ULONG  = uint32_t;
+#endif
+
+// Allow `100ms` literals, etc.
 using namespace std::chrono_literals;
 
-template<typename t>
-std::ostream& operator<<(std::ostream& os, std::vector<t> v)
-{
-    for (auto& c : v)
-    {
-        os << c;
+// Convenience: the original code uses `string` without `std::`
+using std::string;
+
+#if defined(__has_include)
+  #if __has_include(<png.h>)
+    #include <png.h>
+  #endif
+#endif
+
+// ---------------------------
+// Small utility helpers used across the server code
+// (Some repos had these in other files; we keep them here header-only
+// to avoid "not declared in this scope" during Linux builds.)
+// ---------------------------
+
+inline void replaceSubstrs(std::string& s, const std::string& from, const std::string& to) {
+    if (from.empty()) return;
+    size_t pos = 0;
+    while ((pos = s.find(from, pos)) != std::string::npos) {
+        s.replace(pos, from.length(), to);
+        pos += to.length();
     }
-    return os;
 }
 
-
-inline std::string decodeURIComponent(std::string encoded) {
-
-    std::string decoded = encoded;
-    std::smatch sm;
-    std::string haystack;
-
-    size_t dynamicLength = decoded.size() - 2;
-
-    if (decoded.size() < 3) return decoded;
-
-    for (size_t i = 0; i < dynamicLength; i++)
-    {
-
-        haystack = decoded.substr(i, 3);
-
-        if (std::regex_match(haystack, sm, std::regex("%[0-9A-F]{2}")))
-        {
-            haystack = haystack.replace(0, 1, "0x");
-            std::string rc = { (char)std::stoi(haystack, nullptr, 16) };
-            decoded = decoded.replace(decoded.begin() + i, decoded.begin() + i + 3, rc);
-        }
-
-        dynamicLength = decoded.size() - 2;
-
-    }
-
-    return decoded;
-}
-
-inline std::string encodeURIComponent(std::string decoded)
-{
-
+// Read file into a std::string (binary safe)
+inline std::string readFile(const std::string& path) {
+    std::ifstream ifs(path, std::ios::binary);
+    if (!ifs) return {};
     std::ostringstream oss;
-    std::regex r("[!'\\(\\)*-.0-9A-Za-z_~]");
-
-    for (char& c : decoded)
-    {
-        std::string sc;
-        sc += c;
-        if (std::regex_match(sc, r))
-        {
-            oss << c;
-        }
-        else
-        {
-            oss << "%" << std::uppercase << std::hex << (0xff & c);
-        }
-    }
+    oss << ifs.rdbuf();
     return oss.str();
 }
 
+// Basic percent-decoding for application/x-www-form-urlencoded style bodies.
+// Also converts '+' to space.
+inline std::string decodeURIComponent(const std::string& s) {
+    std::string out;
+    out.reserve(s.size());
+    auto hexval = [](char c) -> int {
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
+        if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
+        return -1;
+    };
 
-
-inline std::string readFile(std::string fileName)
-{
-    std::string s="";
-    std::ifstream fs;
-    fs.open(fileName, std::ios_base::binary | std::ios::ate);
-    if (fs)
-    {
-        long sz = (long)fs.tellg();
-        fs.seekg(0);
-        s.resize(sz);
-        fs.read((char*)s.data(), sz);
-        fs.close();
+    for (size_t i = 0; i < s.size(); ++i) {
+        char c = s[i];
+        if (c == '+') {
+            out.push_back(' ');
+        } else if (c == '%' && i + 2 < s.size()) {
+            int hi = hexval(s[i + 1]);
+            int lo = hexval(s[i + 2]);
+            if (hi >= 0 && lo >= 0) {
+                out.push_back(static_cast<char>((hi << 4) | lo));
+                i += 2;
+            } else {
+                out.push_back(c);
+            }
+        } else {
+            out.push_back(c);
+        }
     }
-    return s;
+    return out;
 }
 
-inline void replaceSubstrs(string& in, string pattern,string replaceStr) {
-    string::size_type n = pattern.length();
-    for (string::size_type i = in.find(pattern);
-        i != string::npos;
-        i = in.find(pattern))
-    {
-        in.erase(i, n);
-        in.insert(i, replaceStr);
-    }
-}
+// #define DEBUG_APP
