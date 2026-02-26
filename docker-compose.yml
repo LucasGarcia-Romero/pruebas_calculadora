@@ -1,0 +1,36 @@
+services:
+  recorder:
+    build:
+      context: .
+      dockerfile: recorder/Dockerfile
+    container_name: bird-recorder
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/snd:/dev/snd
+    volumes:
+      - bird_data:/data
+    environment:
+      - DATA_DIR=/data
+      - STATION=TECHOUTAD_
+      - BITRATE=16
+      - SAMPLE_RATE=32000
+      - GAIN=5.0
+      - DURATION=60
+      - IDRECORDER=1
+      - SLEEPDURATION=10
+      - GPIO_PIN=117
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: bird-http-server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - bird_data:/data:ro
+
+volumes:
+  bird_data:

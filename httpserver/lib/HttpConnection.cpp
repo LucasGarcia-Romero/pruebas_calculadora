@@ -149,7 +149,7 @@ string HttpConnection::readFileFromFolder(string fileName)
     f = readFile(System::htmlFilesFolder + fileName);
     if (f.length() == 0)
     {
-        f = readFile(System::dataFilesFolder);
+        f = readFile(System::dataFilesFolder + fileName);
     }
     return f;
 }
