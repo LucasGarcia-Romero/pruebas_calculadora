@@ -44,34 +44,40 @@
 				}
 				for (let i in json.files) {
 				
-				 var div1=document.createElement("div");
-				 div1.setAttribute("class","container");
-				 var div2_1=document.createElement("div");
-				 div2_1.setAttribute("class","image");
-				 var div2_2=document.createElement("div");
-				 div2_2.setAttribute("class","text");
+				var div1=document.createElement("div");
+				div1.setAttribute("class","container");
+				var div2_1=document.createElement("div");
+				div2_1.setAttribute("class","image");
+				var div2_2=document.createElement("div");
+				div2_2.setAttribute("class","text");
 
-				 var img=document.createElement("img");
-				 img.setAttribute("src","folder.png");
+				var img=document.createElement("img");
+				img.setAttribute("src","folder.png");
 				 
- 				 var text=document.createElement("span");
+ 				var text=document.createElement("span");
 
-				 if(json.files[i].type=="DIR")
-				 {
-					img.setAttribute("onClick","listFiles(\""+json.files[i].parent+"/"+json.files[i].name+"\")");            
+				if(json.files[i].type=="DIR")
+				{
+					img.setAttribute("onClick","listFileSs(\""+json.files[i].parent+"/"+json.files[i].name+"\")");            
 	 				text.innerText=json.files[i].name;
-				 }
-				 if(json.files[i].type=="PARENTDIR")
-				 {	
+				}
+				if(json.files[i].type=="PARENTDIR")
+				{	
 				    img.setAttribute("onClick","listFiles(\""+json.files[i].parent+"/\")");            
 					text.innerText="Previous folder";
-				 }
+				}
+				if(json.files[i].type=="FILE")
+				{
+					img.setAttribute("src","audio.png");
+					img.setAttribute("onClick","window.open(\""+json.files[i].parent+json.files[i].name+"\")");
+					text.innerText=json.files[i].name;
+				}
 
- 				 div2_1.appendChild(img);
-				 div2_2.appendChild(text);
-				 div1.appendChild(div2_1);
-				 div1.appendChild(div2_2);
-				 div0.appendChild(div1);		 
+ 				div2_1.appendChild(img);
+				div2_2.appendChild(text);
+				div1.appendChild(div2_1);
+				div1.appendChild(div2_2);
+				div0.appendChild(div1);		 
 				}
 			}
     )
@@ -79,7 +85,7 @@
 	
     $(document).ready(function() {
         var user="userPrueba";
-        listFiles("wavsDir/");
+        listFiles("recordings/");
     });
  
     </script>
