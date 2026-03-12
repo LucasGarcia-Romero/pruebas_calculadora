@@ -8,7 +8,7 @@
 class HttpServer {
 private:
     int port;
-    __int64 sock_fd;
+    int sock_fd;
     bool exit = false;
     unsigned int counterId = 0;
     int lastClientSize = 0;
@@ -19,8 +19,8 @@ private:
 
 public: 
     HttpServer(int port);
-    __int64  openSocket(int port);
-    static void bindSocket(__int64 sock_fd,int port, ULONG addr);
+    int  openSocket(int port);
+    static void bindSocket(int sock_fd,int port, unsigned long addr);
 
     static void waitForConnectionsAsync(HttpServer* server);
     void waitForConnections();

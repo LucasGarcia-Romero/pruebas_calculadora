@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="favicon.ico">
+  <title>Estado</title>
+
+  <style>
+    :root{
+      --card: rgba(0,0,0,0.45);
+      --card-border: rgba(255,255,255,0.15);
+      --text:#e8f5e9;
+      --muted:#b7d6b8;
+      --accent:#4CAF50;
+      --accent-dark:#2e7d32;
+      --ok:#4CAF50;
+      --warn:#f59e0b;
+      --off:#ef4444;
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--text);
+      background:
+        linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),
+        url("fondo.jpg");
+      background-size:cover;
+      background-position:center;
+      background-attachment:fixed;
+      min-height:100vh;
+    }
+
+    .wrapper{
+      max-width:1100px;
+      margin:auto;
+      padding:30px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      margin-bottom:30px;
+      flex-wrap:wrap;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:15px;
+    }
+
+    .brand-badge{
+      width:52px;
+      height:52px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:14px;
+      background:rgba(0,0,0,0.35);
+      border:1px solid rgba(255,255,255,0.2);
+    }
+
+    .brand-badge img{
+      width:32px;
+      height:32px;
+      object-fit:contain;
+    }
+
+    h1{
+      margin:0;
+      font-size:30px;
+    }
+
+    .subtitle{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:12px 18px;
+      border-radius:12px;
+      text-decoration:none;
+      font-weight:bold;
+      border:none;
+      cursor:pointer;
+      color:white;
+      background:var(--accent);
+    }
+
+    .btn:hover{
+      background:var(--accent-dark);
+    }
+
+    .btn-secondary{
+      background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.12);
+    }
+
+    .hero-card,
+    .card{
+      background:var(--card);
+      border:1px solid var(--card-border);
+      border-radius:20px;
+      padding:24px;
+      backdrop-filter:blur(8px);
+      margin-bottom:24px;
+    }
+
+    .hero-card{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:20px;
+      flex-wrap:wrap;
+    }
+
+    .hero-card h2{
+      margin:0 0 8px 0;
+      font-size:34px;
+    }
+
+    .hero-card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.6;
+      max-width:700px;
+    }
+
+    .big-status{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:18px;
+      font-weight:bold;
+      padding:14px 18px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.06);
+      min-width:220px;
+      justify-content:center;
+    }
+
+    .dot{
+      width:14px;
+      height:14px;
+      border-radius:50%;
+      background:var(--warn);
+      box-shadow:0 0 18px rgba(255,255,255,0.25);
+      flex-shrink:0;
+    }
+
+    .dot.ok{
+      background:var(--ok);
+      box-shadow:0 0 18px rgba(76,175,80,0.6);
+    }
+
+    .dot.off{
+      background:var(--off);
+      box-shadow:0 0 18px rgba(239,68,68,0.6);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:20px;
+    }
+
+    .metric{
+      padding:20px;
+      border-radius:18px;
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.08);
+    }
+
+    .metric-label{
+      color:var(--muted);
+      font-size:14px;
+      margin-bottom:12px;
+    }
+
+    .metric-value{
+      font-size:28px;
+      font-weight:bold;
+      word-break:break-word;
+    }
+
+    .metric-sub{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:bold;
+      margin-top:10px;
+    }
+
+    .badge.ok{
+      background:rgba(76,175,80,0.18);
+      color:#d9f7dd;
+      border:1px solid rgba(76,175,80,0.35);
+    }
+
+    .badge.off{
+      background:rgba(239,68,68,0.18);
+      color:#ffd7d7;
+      border:1px solid rgba(239,68,68,0.35);
+    }
+
+    .info-list{
+      display:grid;
+      grid-template-columns:180px 1fr;
+      gap:10px 16px;
+      align-items:start;
+    }
+
+    .info-key{
+      color:var(--muted);
+      font-weight:bold;
+    }
+
+    .info-value{
+      word-break:break-word;
+    }
+
+    .small{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:12px;
+    }
+
+    @media (max-width:860px){
+      .grid{
+        grid-template-columns:1fr;
+      }
+
+      .hero-card h2{
+        font-size:28px;
+      }
+
+      .info-list{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-badge">
+          <img src="favicon.ico" alt="logo">
+        </div>
+        <div>
+          <h1>Estado</h1>
+          <div class="subtitle">Supervisión de la grabadora y del contenedor</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn btn-secondary" href="index.html">← Volver al menú</a>
+        <button class="btn" onclick="loadStatus()">Actualizar</button>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div>
+        <h2>Estado actual del sistema</h2>
+        <p>
+          Esta vista comprueba si el contenedor <strong>bird-recorder</strong> está activo,
+          si el script <strong>record.sh</strong> sigue levantado y si <strong>sox</strong>
+          está grabando en este momento.
+        </p>
+      </div>
+
+      <div class="big-status" id="globalStatus">
+        <span class="dot" id="globalDot"></span>
+        <span id="globalText">Cargando...</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="metric">
+        <div class="metric-label">Contenedor</div>
+        <div class="metric-value" id="containerStatus">--</div>
+        <div id="containerBadge"></div>
+        <div class="metric-sub">Estado de <strong>bird-recorder</strong>.</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Script de grabación</div>
+        <div class="metric-value" id="recordStatus">--</div>
+        <div id="recordBadge"></div>
+        <div class="metric-sub">Comprueba si <strong>record.sh</strong> aparece en <code>docker top</code>.</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Captura de audio</div>
+        <div class="metric-value" id="soxStatus">--</div>
+        <div id="soxBadge"></div>
+        <div class="metric-sub">Comprueba si <strong>sox</strong> está grabando ahora mismo.</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Archivo actual</div>
+        <div class="metric-value" id="currentFile">--</div>
+        <div class="metric-sub">Nombre del WAV detectado en la línea de <strong>sox</strong>.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="metric-label">Detalle técnico</div>
+      <div class="info-list">
+        <div class="info-key">Última actualización</div>
+        <div class="info-value" id="lastUpdate">--</div>
+
+        <div class="info-key">Contenedor</div>
+        <div class="info-value" id="detailContainer">--</div>
+
+        <div class="info-key">Proceso record.sh</div>
+        <div class="info-value" id="detailRecord">--</div>
+
+        <div class="info-key">Proceso sox</div>
+        <div class="info-value" id="detailSox">--</div>
+
+        <div class="info-key">Comando actual</div>
+        <div class="info-value" id="detailCommand">--</div>
+      </div>
+
+      <div class="small">Refresco automático cada 5 segundos.</div>
+    </div>
+
+  </div>
+
+  <script>
+    function setBadge(containerId, active, onText, offText) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = "";
+      const badge = document.createElement("span");
+      badge.className = "badge " + (active ? "ok" : "off");
+      badge.textContent = active ? onText : offText;
+      el.appendChild(badge);
+    }
+
+    function setGlobalStatus(data) {
+      const globalText = document.getElementById("globalText");
+      const globalDot = document.getElementById("globalDot");
+
+      if (data.container_running && data.record_running && data.sox_running) {
+        globalText.textContent = "Grabando";
+        globalDot.className = "dot ok";
+      } else if (data.container_running && data.record_running) {
+        globalText.textContent = "Activo";
+        globalDot.className = "dot";
+      } else {
+        globalText.textContent = "Parado";
+        globalDot.className = "dot off";
+      }
+    }
+
+    async function loadStatus() {
+      try {
+        const response = await fetch("/status");
+        const data = await response.json();
+
+        document.getElementById("containerStatus").textContent = data.container_status || "--";
+        document.getElementById("recordStatus").textContent = data.record_running ? "running" : "stopped";
+        document.getElementById("soxStatus").textContent = data.sox_running ? "active" : "inactive";
+        document.getElementById("currentFile").textContent = data.current_file || "Sin archivo detectado";
+
+        document.getElementById("lastUpdate").textContent = new Date().toLocaleString();
+        document.getElementById("detailContainer").textContent = data.container_status || "--";
+        document.getElementById("detailRecord").textContent = data.record_command || "No detectado";
+        document.getElementById("detailSox").textContent = data.sox_command || "No detectado";
+        document.getElementById("detailCommand").textContent = data.sox_command || data.record_command || "--";
+
+        setBadge("containerBadge", data.container_running, "Contenedor activo", "Contenedor parado");
+        setBadge("recordBadge", data.record_running, "record.sh activo", "record.sh no detectado");
+        setBadge("soxBadge", data.sox_running, "sox grabando", "sox no detectado");
+
+        setGlobalStatus(data);
+      } catch (error) {
+        document.getElementById("containerStatus").textContent = "error";
+        document.getElementById("recordStatus").textContent = "error";
+        document.getElementById("soxStatus").textContent = "error";
+        document.getElementById("currentFile").textContent = "No se pudo cargar /status";
+        document.getElementById("detailCommand").textContent = String(error);
+
+        setBadge("containerBadge", false, "", "Error");
+        setBadge("recordBadge", false, "", "Error");
+        setBadge("soxBadge", false, "", "Error");
+
+        document.getElementById("globalText").textContent = "Error";
+        document.getElementById("globalDot").className = "dot off";
+      }
+    }
+
+    loadStatus();
+    setInterval(loadStatus, 5000);
+  </script>
+</body>
+</html>

@@ -1,6 +1,9 @@
 #pragma once
 #include "common.h"
 #include "PostMethod.h"
+#include <map>
+#include <string>
+
 typedef struct
 {
     int size;
@@ -10,7 +13,7 @@ typedef struct
 typedef struct {
     unsigned int id;
     unsigned int serverId;
-    __int64 socket;
+    int socket;
     bool alive;
 }connection_t;
 
@@ -30,13 +33,20 @@ private:
     std::map<std::string, std::string> parameters;
     std::map<std::string, std::string> mimeTypes;
     std::map<std::string, PostMethod*> postMethods;
+
+    std::string runCommand(const std::string& cmd);
+    std::string trim(const std::string& s);
+    std::string escapeJson(const std::string& s);
+    std::string extractWavName(const std::string& text);
+    std::string buildStatusJson();
+
 public:
     HttpConnection(int id, connection_t conn) :id(id), conn(conn) {
         buildMimeTypes();
         postMethods["/listFiles"] = new ListFiles();
         postMethods["/recordData"] = new RecordData();
-
     }
+
     void parseLine(std::string& line);
     void parseMethod(std::string& line);
 
@@ -53,4 +63,3 @@ public:
         size_t contentLength);
     string readFileFromFolder(string fileName);
 };
-

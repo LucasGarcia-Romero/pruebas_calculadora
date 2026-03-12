@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="icon" href="favicon.ico">
+
+<title>Grabaciones</title>
+
+<style>
+
+:root{
+ --card: rgba(0,0,0,0.45);
+ --card-border: rgba(255,255,255,0.15);
+ --text:#e8f5e9;
+ --muted:#b7d6b8;
+ --accent:#4CAF50;
+ --accent-dark:#2e7d32;
+}
+
+body{
+ margin:0;
+ font-family:Arial, Helvetica, sans-serif;
+ color:var(--text);
+
+ background:
+ linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),
+ url("fondo.jpg");
+
+ background-size:cover;
+ background-position:center;
+ background-attachment:fixed;
+}
+
+.wrapper{
+ max-width:1000px;
+ margin:auto;
+ padding:30px;
+}
+
+.topbar{
+ display:flex;
+ align-items:center;
+ gap:15px;
+ margin-bottom:30px;
+}
+
+.brand-badge{
+ width:52px;
+ height:52px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ border-radius:14px;
+ background:rgba(0,0,0,0.35);
+ border:1px solid rgba(255,255,255,0.2);
+}
+
+.brand-badge img{
+ width:30px;
+}
+
+h1{
+ margin:0;
+}
+
+.card{
+ background:var(--card);
+ border:1px solid var(--card-border);
+ border-radius:20px;
+ padding:25px;
+ backdrop-filter: blur(8px);
+}
+
+.container{
+ display:flex;
+ align-items:center;
+ gap:20px;
+ padding:15px;
+ border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+.container:hover{
+ background:rgba(255,255,255,0.05);
+}
+
+.container img{
+ width:70px;
+ height:70px;
+ cursor:pointer;
+}
+
+.text{
+ font-size:22px;
+}
+
+.back{
+ display:inline-block;
+ margin-bottom:20px;
+ color:var(--text);
+ text-decoration:none;
+ font-weight:bold;
+}
+
+.filter-buttons{
+ display:flex;
+ gap:15px;
+ margin-bottom:20px;
+}
+
+.filter-buttons button{
+ background:var(--accent);
+ border:none;
+ color:white;
+ padding:10px 18px;
+ border-radius:10px;
+ font-size:16px;
+ cursor:pointer;
+}
+
+.filter-buttons button:hover{
+ background:var(--accent-dark);
+}
+
+</style>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+
+<script>
+
+let currentFilter="wav";
+
+function setFilter(type){
+ currentFilter=type;
+ listFiles("recordings/");
+}
+
+function listFiles(dirPath)
+{
+
+ $.post(
+ "/listFiles",
+
+ {directory: dirPath,secondParam:"second"},
+
+ function(data)
+ {
+
+ var json=JSON.parse(data);
+
+ var div0=document.getElementById("directoryList");
+
+ while(div0.firstChild){
+ div0.removeChild(div0.lastChild);
+ }
+
+ for(let i in json.files){
+
+ var file=json.files[i];
+
+ if(file.type=="FILE"){
+
+ let name=file.name;
+
+ if(currentFilter=="wav" && !name.endsWith(".wav")) continue;
+ if(currentFilter=="png" && !name.endsWith(".png")) continue;
+
+ var div1=document.createElement("div");
+ div1.setAttribute("class","container");
+
+ var img=document.createElement("img");
+
+ if(name.endsWith(".wav")){
+ img.src="audio.png";
+ }else{
+ img.src="spectrogram.png";
+ }
+
+ img.onclick=function(){
+ window.open(file.parent+name);
+ };
+
+ var text=document.createElement("span");
+ text.setAttribute("class","text");
+ text.innerText=name;
+
+ div1.appendChild(img);
+ div1.appendChild(text);
+ div0.appendChild(div1);
+
+ }
+
+ }
+
+ });
+
+}
+
+$(document).ready(function(){
+ listFiles("recordings/");
+});
+
+</script>
+
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<div class="topbar">
+
+<div class="brand-badge">
+<img src="favicon.ico">
+</div>
+
+<h1>Grabaciones</h1>
+
+</div>
+
+<a class="back" href="index.html">← Volver al menú</a>
+
+<div class="filter-buttons">
+<button onclick="setFilter('wav')">Audio</button>
+<button onclick="setFilter('png')">Spectrograma</button>
+</div>
+
+<div class="card">
+
+<div id="directoryList"></div>
+
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,6 +1,11 @@
 #include "HttpConnection.h"
 #include "System.h"
 
+#include <array>
+#include <cstdio>
+#include <regex>
+#include <sstream>
+
 std::string HttpConnection::readData(size_t length)
 {
     size_t recvSize = 0;
@@ -23,8 +28,9 @@ std::string HttpConnection::readLine()
     {
         recvSize = recv(conn.socket, &buf[0], 1, 0);
         if (recvSize == 1) line.push_back(buf[0]);
-        else    conn.alive = false;
+        else conn.alive = false;
     } while (buf[0] != '\n' && recvSize == 1);
+
     line.push_back('\0');
     return line;
 }
@@ -93,10 +99,9 @@ void HttpConnection::buildMimeTypes()
     this->mimeTypes["7z"] = "application/x-7z-compressed";
 }
 
-
 void HttpConnection::parseMethod(std::string& line)
 {
-    __int64 methodEnd = line.find(' ');
+    int methodEnd = line.find(' ');
     std::string method = line.substr(0, methodEnd);
     size_t urlEnd = line.find(' ', methodEnd + 1);
     if (urlEnd == std::string::npos)
@@ -105,7 +110,6 @@ void HttpConnection::parseMethod(std::string& line)
 
     parameters["METHOD"] = method;
     parameters["METHODURL"] = url;
-
 }
 
 void HttpConnection::parseLine(std::string& line)
@@ -122,9 +126,11 @@ void HttpConnection::recvHttpPacket()
     parameters.clear();
     rawHttpPacket = "";
     std::string line;
+
     line = readLine();
     rawHttpPacket += line;
     parseMethod(line);
+
     do {
         line = readLine();
         parseLine(line);
@@ -136,11 +142,9 @@ void HttpConnection::recvHttpPacket()
     {
         int contentLength = std::stoi(parameters.find("Content-Length")->second);
         line = decodeURIComponent(readData(contentLength));
-        //line=readData(contentLength);
         parameters["METHODPARAMS"] = line;
         rawHttpPacket += line;
     }
-
 }
 
 string HttpConnection::readFileFromFolder(string fileName)
@@ -154,23 +158,131 @@ string HttpConnection::readFileFromFolder(string fileName)
     return f;
 }
 
+std::string HttpConnection::trim(const std::string& s)
+{
+    size_t start = s.find_first_not_of(" \t\r\n");
+    if (start == std::string::npos) return "";
+    size_t end = s.find_last_not_of(" \t\r\n");
+    return s.substr(start, end - start + 1);
+}
+
+std::string HttpConnection::escapeJson(const std::string& s)
+{
+    std::string out;
+    for (char c : s)
+    {
+        switch (c)
+        {
+        case '\"': out += "\\\""; break;
+        case '\\': out += "\\\\"; break;
+        case '\b': out += "\\b"; break;
+        case '\f': out += "\\f"; break;
+        case '\n': out += "\\n"; break;
+        case '\r': out += "\\r"; break;
+        case '\t': out += "\\t"; break;
+        default: out += c; break;
+        }
+    }
+    return out;
+}
+
+std::string HttpConnection::runCommand(const std::string& cmd)
+{
+    std::array<char, 256> buffer;
+    std::string result;
+
+    FILE* pipe = popen(cmd.c_str(), "r");
+    if (!pipe)
+        return "";
+
+    while (fgets(buffer.data(), (int)buffer.size(), pipe) != nullptr)
+    {
+        result += buffer.data();
+    }
+
+    pclose(pipe);
+    return result;
+}
+
+std::string HttpConnection::extractWavName(const std::string& text)
+{
+    std::regex rgx(R"(/data/recordings/([^\s]+\.wav))");
+    std::smatch match;
+
+    if (std::regex_search(text, match, rgx))
+    {
+        return match[1];
+    }
+    return "";
+}
+
+std::string HttpConnection::buildStatusJson()
+{
+    std::string containerStatus = trim(runCommand("docker inspect -f '{{.State.Status}}' bird-recorder 2>/dev/null"));
+    std::string topOutput = runCommand("docker top bird-recorder 2>/dev/null");
+
+    std::string recordLine = "";
+    std::string soxLine = "";
+
+    std::istringstream iss(topOutput);
+    std::string line;
+    while (std::getline(iss, line))
+    {
+        if (line.find("record.sh") != std::string::npos)
+            recordLine = trim(line);
+
+        if (line.find("sox") != std::string::npos)
+            soxLine = trim(line);
+    }
+
+    bool containerRunning = (containerStatus == "running");
+    bool recordRunning = !recordLine.empty();
+    bool soxRunning = !soxLine.empty();
+
+    std::string currentFile = extractWavName(soxLine);
+
+    std::string json = "{";
+    json += "\"container_status\":\"" + escapeJson(containerStatus) + "\",";
+    json += "\"container_running\":" + std::string(containerRunning ? "true" : "false") + ",";
+    json += "\"record_running\":" + std::string(recordRunning ? "true" : "false") + ",";
+    json += "\"record_command\":\"" + escapeJson(recordLine) + "\",";
+    json += "\"sox_running\":" + std::string(soxRunning ? "true" : "false") + ",";
+    json += "\"sox_command\":\"" + escapeJson(soxLine) + "\",";
+    json += "\"current_file\":\"" + escapeJson(currentFile) + "\"";
+    json += "}";
+
+    return json;
+}
+
 void HttpConnection::parseHttpPacket()
 {
-
     std::cout << rawHttpPacket << "\n";
+
     auto methodNode = parameters.end();
-    auto methodUrl = parameters.end();
     response.header = response.body = response.type = "";
+
     if ((methodNode = parameters.find("METHOD")) != parameters.end())
     {
         auto method = methodNode->second;
+
         if (method == "GET")
         {
             auto url = parameters.find("METHODURL")->second;
+
             if (url.ends_with('/'))
             {
                 url = "/";
             }
+
+            if (url == "/status")
+            {
+                response.type = mimeTypes["json"];
+                response.body = buildStatusJson();
+                response.header = createHeader("200 OK", response.type, response.body.length());
+                response.sendBody = true;
+                return;
+            }
+
             if (url == "/")
             {
                 response.type = mimeTypes["html"];
@@ -179,24 +291,29 @@ void HttpConnection::parseHttpPacket()
             else
             {
                 response.body = readFileFromFolder(url);
+
                 size_t extensionPos = url.rfind('.');
                 if (extensionPos != std::string::npos) {
-                    auto mimeExtension = url.substr(extensionPos, url.length() - 1);
-                    response.type = mimeTypes[mimeExtension];
+                    auto mimeExtension = url.substr(extensionPos + 1);
+                    if (mimeTypes.find(mimeExtension) != mimeTypes.end())
+                        response.type = mimeTypes[mimeExtension];
+                    else
+                        response.type = "application/octet-stream";
                 }
-                else
+                else {
                     response.type = "application/octet-stream";
+                }
             }
+
             if (response.body.empty())
             {
                 response.header = createHeader("404 Not Found", response.type, response.body.length());
                 response.sendBody = false;
-
             }
-            else {
+            else
+            {
                 response.header = createHeader("200 OK", response.type, response.body.length());
                 response.sendBody = true;
-
             }
         }
         else if (method == "POST")
@@ -219,9 +336,7 @@ void HttpConnection::parseHttpPacket()
                 response.header = createHeader("404 Not Found", response.type, response.body.length());
             }
         }
-
     }
-
 }
 
 std::string HttpConnection::createHeader(
@@ -247,19 +362,17 @@ std::string HttpConnection::createHeader(
         httpHeader += "Accept-Ranges: bytes\r\n";
         httpHeader += "Access-Control-Allow-Origin: *\r\n";
     }
+
     httpHeader += "\r\n";
     return httpHeader;
 }
 
 void HttpConnection::sendHttpPacket()
 {
-
     std::string httpPacket = response.header;
-    if(response.sendBody) httpPacket+= response.body;
+    if (response.sendBody) httpPacket += response.body;
 
     send(conn.socket, httpPacket.c_str(), (int)httpPacket.length(), MSG_NOSIGNAL);
-
-
 }
 
 void HttpConnection::clientLoop()

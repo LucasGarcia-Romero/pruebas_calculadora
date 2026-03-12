@@ -14,8 +14,8 @@ HttpServer::HttpServer(int port):port(port)
     waitForConnectionsThread.detach();
 }
 
-__int64 HttpServer::openSocket(int port) {
-     __int64 sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+int HttpServer::openSocket(int port) {
+     int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
      if (sock_fd < 0)
      {
          std::cout << "Error creating socket\n";
@@ -28,7 +28,7 @@ __int64 HttpServer::openSocket(int port) {
  }
 
 
- void HttpServer::bindSocket(__int64 sock_fd,int port, ULONG addr)
+ void HttpServer::bindSocket(int sock_fd,int port, unsigned long addr)
  {
      struct sockaddr_in serv_addr;
      serv_addr.sin_family = AF_INET;
@@ -58,7 +58,7 @@ void HttpServer::waitForConnections(){
     struct sockaddr_in cli_addr;
     socklen_t clilen = sizeof(cli_addr);
     
-    __int64 newsock_fd = accept(this->sock_fd,
+    int newsock_fd = accept(this->sock_fd,
                             (struct sockaddr * ) &cli_addr,
                             &clilen);
     connection_t client;

@@ -1,98 +1,361 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
- <style>
-  .container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  img {
-    width: 100px;
-    height:100px;
-  }
-  
-    
-  .text {
-    font-size: 40px;
-    padding-left: 20px;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bird Recorder</title>
 
-    float: left;
-  }
+<style>
 
- </style>
-    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+:root {
+  --card: rgba(0,0,0,0.45);
+  --card-border: rgba(255,255,255,0.15);
+  --text: #e8f5e9;
+  --muted: #b7d6b8;
+  --accent: #4CAF50;
+  --accent-dark: #2e7d32;
+  --shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
 
-    <script>
-	
-	
-	function listFiles(dirPath)
-	{
-		var sendPost=$.post(
-		"/listFiles",
+* { box-sizing: border-box; }
 
-			{directory: dirPath,secondParam: "second"},
-			function(data) 
-			{
-			   var json=JSON.parse(data);
-			   //alert('resultado ' + JSON.stringify(json));
-				var div0 = document.getElementById("directoryList");
-				while (div0.firstChild) {
-					div0.removeChild(div0.lastChild);
-				}
-				for (let i in json.files) {
-				
-				var div1=document.createElement("div");
-				div1.setAttribute("class","container");
-				var div2_1=document.createElement("div");
-				div2_1.setAttribute("class","image");
-				var div2_2=document.createElement("div");
-				div2_2.setAttribute("class","text");
+body{
+  margin:0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
 
-				var img=document.createElement("img");
-				img.setAttribute("src","folder.png");
-				 
- 				var text=document.createElement("span");
+  background:
+  linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),
+  url("fondo.jpg");
 
-				if(json.files[i].type=="DIR")
-				{
-					img.setAttribute("onClick","listFileSs(\""+json.files[i].parent+"/"+json.files[i].name+"\")");            
-	 				text.innerText=json.files[i].name;
-				}
-				if(json.files[i].type=="PARENTDIR")
-				{	
-				    img.setAttribute("onClick","listFiles(\""+json.files[i].parent+"/\")");            
-					text.innerText="Previous folder";
-				}
-				if(json.files[i].type=="FILE")
-				{
-					img.setAttribute("src","audio.png");
-					img.setAttribute("onClick","window.open(\""+json.files[i].parent+json.files[i].name+"\")");
-					text.innerText=json.files[i].name;
-				}
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 
- 				div2_1.appendChild(img);
-				div2_2.appendChild(text);
-				div1.appendChild(div2_1);
-				div1.appendChild(div2_2);
-				div0.appendChild(div1);		 
-				}
-			}
-    )
-	};
-	
-    $(document).ready(function() {
-        var user="userPrueba";
-        listFiles("recordings/");
-    });
- 
-    </script>
+  min-height:100vh;
+}
 
+.wrapper{
+  max-width:1100px;
+  margin:auto;
+  padding:30px;
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:40px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.brand-badge{
+  width:52px;
+  height:52px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+
+  background:linear-gradient(135deg,var(--accent),var(--accent-dark));
+  font-size:24px;
+}
+
+.brand h1{
+  margin:0;
+  font-size:28px;
+}
+
+.brand p{
+  margin:3px 0 0;
+  color:var(--muted);
+}
+
+.status-pill{
+  padding:8px 14px;
+  border-radius:999px;
+
+  background:rgba(76,175,80,0.2);
+  border:1px solid rgba(76,175,80,0.4);
+}
+
+.hero{
+  display:grid;
+  grid-template-columns:1.3fr 1fr;
+  gap:25px;
+  margin-bottom:35px;
+}
+
+.hero-card,
+.panel,
+.nav-card{
+  background:var(--card);
+  border:1px solid var(--card-border);
+  backdrop-filter: blur(8px);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+}
+
+.hero-card{
+  padding:30px;
+}
+
+.hero-card h2{
+  margin:10px 0;
+  font-size:40px;
+}
+
+.hero-card p{
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.hero-actions{
+  margin-top:25px;
+  display:flex;
+  gap:10px;
+}
+
+.btn{
+  padding:12px 18px;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:bold;
+}
+
+.btn-primary{
+  background:var(--accent);
+  color:white;
+}
+
+.btn-secondary{
+  background:rgba(255,255,255,0.08);
+  color:white;
+}
+
+.panel{
+  padding:20px;
+}
+
+.mini-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.metric{
+  padding:15px;
+  border-radius:14px;
+  background:rgba(255,255,255,0.05);
+}
+
+.metric .label{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.metric .value{
+  font-size:24px;
+  font-weight:bold;
+}
+
+.section-title{
+  margin-bottom:15px;
+}
+
+.menu-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:25px;
+}
+
+.nav-card{
+  padding:28px;
+  text-decoration:none;
+  color:inherit;
+  transition:0.2s;
+}
+
+.nav-card:hover{
+  transform:translateY(-3px);
+}
+
+.nav-icon{
+  font-size:32px;
+  margin-bottom:10px;
+}
+
+.nav-card h3{
+  margin:0 0 8px;
+  font-size:26px;
+}
+
+.nav-card p{
+  color:var(--muted);
+}
+
+.nav-link{
+  font-weight:bold;
+}
+
+@media(max-width:900px){
+
+.hero{
+  grid-template-columns:1fr;
+}
+
+.menu-grid{
+  grid-template-columns:1fr;
+}
+
+}
+.brand-badge {
+  width:52px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:14px;
+  background:rgba(0,0,0,0.35);
+  border:1px solid rgba(255,255,255,0.2);
+}
+
+.brand-badge img{
+  width:32px;
+  height:32px;
+  object-fit:contain;
+}
+
+</style>
 </head>
+
 <body>
-<div id="directoryList">
-  
+
+<div class="wrapper">
+
+<header class="topbar">
+
+<div class="brand">
+<style>
+
+</style>
+
+<div class="brand-badge">
+  <img src="favicon.ico" alt="logo">
 </div>
+
+<div>
+<h1>Bird Recorder</h1>
+<p>Panel principal de la estación de grabación</p>
+</div>
+
+</div>
+
+<div class="status-pill">● Sistema operativo</div>
+
+</header>
+
+
+<section class="hero">
+
+<div class="hero-card">
+
+<h2>Centro de control</h2>
+
+<p>
+Accede rápidamente a las grabaciones generadas por la Orange Pi o revisa
+el estado actual del sistema de grabación.
+</p>
+
+<div class="hero-actions">
+
+<a class="btn btn-primary" href="/recordings.html">
+Ver grabaciones
+</a>
+
+<a class="btn btn-secondary" href="/status.html">
+Ver estado
+</a>
+
+</div>
+
+</div>
+
+
+<aside class="panel">
+
+<h3>Resumen</h3>
+
+<div class="mini-grid">
+
+<div class="metric">
+<div class="label">Estado</div>
+<div class="value">OK</div>
+</div>
+
+<div class="metric">
+<div class="label">Puerto</div>
+<div class="value">8000</div>
+</div>
+
+<div class="metric">
+<div class="label">Audio</div>
+<div class="value">WAV</div>
+</div>
+
+<div class="metric">
+<div class="label">Datos</div>
+<div class="value">/data</div>
+</div>
+
+</div>
+
+</aside>
+
+</section>
+
+<section class="menu-grid">
+
+<a class="nav-card" href="/recordings.html">
+
+<div class="nav-icon">🎧</div>
+
+<h3>Grabaciones</h3>
+
+<p>
+Explora todos los archivos de audio capturados por la grabadora.
+</p>
+
+<span class="nav-link">
+Abrir biblioteca →
+</span>
+
+</a>
+
+
+<a class="nav-card" href="/status.html">
+
+<div class="nav-icon">📊</div>
+
+<h3>Estado</h3>
+
+<p>
+Consulta el estado del sistema, grabación y contenedores.
+</p>
+
+<span class="nav-link">
+Abrir panel →
+</span>
+
+</a>
+
+</section>
+
+</div>
+
 </body>
+</html>

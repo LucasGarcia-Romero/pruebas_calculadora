@@ -3,12 +3,15 @@ FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    g++ make ca-certificates \
+    g++ \
+    make \
+    ca-certificates \
+    docker.io \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Código del servidor (está en /httpserver del repo)
+# Código del servidor
 COPY httpserver/ /app/
 
 # Compilar el binario
