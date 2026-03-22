@@ -1,3 +1,5 @@
+// Expone las rutas publicas
+
 #include "HttpConnection.h"
 #include "System.h"
 
@@ -254,6 +256,20 @@ std::string HttpConnection::buildStatusJson()
     return json;
 }
 
+std::string HttpConnection::buildTemperatureJson()
+{
+    // Ejecutamos el comando para medir la temperatura
+    // Para esto usamos sys/class/thermal/thermal_zone0/temp un archivo especial del kernel de linux que expone la temperatura en miligrados
+    std::string tempStr = trim(runCommand("cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null"));
+    
+    int tempValue = 0;
+    if (!tempStr.empty())
+        // Transformamos la temperatura de miligrados a grados
+        tempValue = std::stoi(tempStr) / 1000;
+
+    return "{\"cpu_temp\":" + std::to_string(tempValue) + "}";
+}
+
 void HttpConnection::parseHttpPacket()
 {
     std::cout << rawHttpPacket << "\n";
@@ -265,6 +281,7 @@ void HttpConnection::parseHttpPacket()
     {
         auto method = methodNode->second;
 
+        // Rutas tipo GET
         if (method == "GET")
         {
             auto url = parameters.find("METHODURL")->second;
@@ -315,7 +332,28 @@ void HttpConnection::parseHttpPacket()
                 response.header = createHeader("200 OK", response.type, response.body.length());
                 response.sendBody = true;
             }
+            
+            // archivos de configuración
+            // Crea lama a exec que le el config.txt
+            if (url == "/config") {
+                response.type = mimeTypes["json"];
+                response.body = postMethods["/getConfig"]->exec("");
+                response.header = createHeader("200 OK", response.type, response.body.length());
+                response.sendBody = true;
+                return;
+            }
+
+            // para medir la temperatura del board
+            if (url == "/temperature") {
+                response.type = mimeTypes["json"];
+                // leemos la temperatura del board
+                response.body = buildTemperatureJson();
+                response.header = createHeader("200 OK", response.type, response.body.length());
+                response.sendBody = true;
+                return;
+            }
         }
+        // Rutas tipo POST
         else if (method == "POST")
         {
             auto url = parameters.find("METHODURL")->second;

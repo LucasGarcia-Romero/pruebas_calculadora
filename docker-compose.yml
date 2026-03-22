@@ -9,7 +9,7 @@ services:
     devices:
       - /dev/snd:/dev/snd
     volumes:
-      - bird_data:/data
+      - /data:/data
     environment:
       - DATA_DIR=/data
       - STATION=TECHOUTAD_
@@ -30,7 +30,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - bird_data:/data:ro
+      - /data:/data
       - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
