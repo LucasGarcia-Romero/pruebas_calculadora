@@ -14,9 +14,9 @@
   --accent-dark: #2e7d32;
   --shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
- 
+
 * { box-sizing: border-box; }
- 
+
 body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
@@ -29,22 +29,22 @@ body {
   background-attachment: fixed;
   min-height: 100vh;
 }
- 
+
 .wrapper {
   max-width: 900px;
   margin: auto;
   padding: 30px;
 }
- 
+
 .topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 40px;
 }
- 
+
 .brand { display: flex; align-items: center; gap: 15px; }
- 
+
 .brand-badge {
   width: 52px; height: 52px;
   display: flex; align-items: center; justify-content: center;
@@ -52,11 +52,11 @@ body {
   background: rgba(0,0,0,0.35);
   border: 1px solid rgba(255,255,255,0.2);
 }
- 
+
 .brand-badge img { width: 32px; height: 32px; object-fit: contain; }
 .brand h1 { margin: 0; font-size: 24px; }
 .brand p  { margin: 3px 0 0; color: var(--muted); font-size: 14px; }
- 
+
 .back-btn {
   padding: 8px 16px;
   border-radius: 999px;
@@ -69,7 +69,96 @@ body {
   transition: background 0.2s;
 }
 .back-btn:hover { background: rgba(255,255,255,0.13); }
- 
+
+/* Mode toggle */
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.mode-btn {
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.07);
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.mode-btn:hover:not(.active) { background: rgba(255,255,255,0.13); }
+
+/* Date range picker */
+.date-range {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.date-range.hidden { display: none; }
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.date-field label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.date-field input[type="datetime-local"] {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 7px 12px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+  color-scheme: dark;
+}
+.date-field input[type="datetime-local"]:focus {
+  border-color: var(--accent);
+}
+
+.apply-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  height: 34px;
+  align-self: flex-end;
+}
+.apply-btn:hover { background: var(--accent-dark); }
+
+.date-hint {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.7;
+  align-self: flex-end;
+  padding-bottom: 8px;
+}
+
+/* ── Card ── */
 .card {
   background: var(--card);
   border: 1px solid var(--card-border);
@@ -79,86 +168,103 @@ body {
   padding: 28px;
   margin-bottom: 24px;
 }
- 
+
 .temp-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
 }
- 
+
 .temp-header h2 { margin: 0; font-size: 20px; }
- 
+
 .temp-big {
   display: flex;
   align-items: baseline;
   gap: 6px;
 }
- 
+
 .temp-value {
   font-size: 56px;
   font-weight: bold;
   line-height: 1;
   transition: color 0.5s;
 }
- 
+
 .temp-unit {
   font-size: 24px;
   color: var(--muted);
 }
- 
+
 .temp-status {
   font-size: 13px;
   color: var(--muted);
   margin-top: 6px;
 }
- 
+
 .refresh-hint {
   font-size: 12px;
   color: var(--muted);
   opacity: 0.6;
 }
- 
+
 .chart-container {
   position: relative;
   height: 220px;
   margin-top: 8px;
 }
- 
+
+/* ── Stats ── */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
 }
- 
+
 .stat {
   padding: 16px;
   border-radius: 14px;
   background: rgba(255,255,255,0.05);
   text-align: center;
 }
- 
+
 .stat .label {
   font-size: 12px;
   color: var(--muted);
   margin-bottom: 6px;
 }
- 
+
 .stat .value {
   font-size: 26px;
   font-weight: bold;
 }
- 
+
+/* ── Loading overlay ── */
+.loading-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  border-radius: 16px;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+.loading-overlay.visible { display: flex; }
+.chart-wrap { position: relative; }
+
 @media(max-width:600px) {
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .temp-value { font-size: 42px; }
+  .date-range { flex-direction: column; }
 }
 </style>
 </head>
 <body>
- 
+
 <div class="wrapper">
- 
+
   <header class="topbar">
     <div class="brand">
       <div class="brand-badge">
@@ -171,11 +277,32 @@ body {
     </div>
     <a class="back-btn" href="/index.html">← Volver</a>
   </header>
- 
+
+  <!-- Selector de modo -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="btn-realtime" onclick="setMode('realtime')">⬤ Tiempo real</button>
+    <button class="mode-btn" id="btn-history"  onclick="setMode('history')">📅 Histórico</button>
+  </div>
+
+  <!-- Selector de rango (solo visible en modo histórico) -->
+  <div class="date-range hidden" id="date-range">
+    <div class="date-field">
+      <label>Inicio</label>
+      <input type="datetime-local" id="date-from" />
+    </div>
+    <div class="date-field">
+      <label>Fin <span style="opacity:0.5">(vacío = ahora)</span></label>
+      <input type="datetime-local" id="date-to" />
+    </div>
+    <button class="apply-btn" onclick="loadHistory()">Aplicar</button>
+    <span class="date-hint" id="range-hint"></span>
+  </div>
+
+  <!-- Gráfica principal -->
   <div class="card">
     <div class="temp-header">
       <div>
-        <h2>CPU Board</h2>
+        <h2 id="card-title">CPU Board</h2>
         <div class="temp-status" id="temp-status">Leyendo…</div>
       </div>
       <div style="text-align:right">
@@ -186,12 +313,15 @@ body {
         <div class="refresh-hint" id="last-update">actualizando…</div>
       </div>
     </div>
- 
-    <div class="chart-container">
-      <canvas id="tempChart"></canvas>
+
+    <div class="chart-wrap">
+      <div class="chart-container">
+        <canvas id="tempChart"></canvas>
+      </div>
+      <div class="loading-overlay" id="loading">Cargando datos…</div>
     </div>
   </div>
- 
+
   <div class="stats-grid">
     <div class="stat">
       <div class="label">Mínima</div>
@@ -206,31 +336,33 @@ body {
       <div class="value" id="stat-avg">--°</div>
     </div>
   </div>
- 
+
 </div>
- 
-<!-- implementa una grafica por medio de una libreria externa que se carga desde CDN -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-// Comprobar sesión
+// Auth
 (function() {
   var hasCookie = document.cookie.split(';').some(function(c) {
     return c.trim().startsWith('birdsession=');
   });
   if (!hasCookie) window.location.href = '/login.html';
 })();
- 
-const MAX_POINTS = 40;
-const labels = [];
+
+// Estado
+let mode = 'realtime';    // 'realtime' | 'history'
+let realtimeInterval = null;
+
+const MAX_RT_POINTS = 40; // puntos máximos en tiempo real
+const labels   = [];
 const tempData = [];
- 
+
+// Chart
 const ctx = document.getElementById('tempChart').getContext('2d');
- 
-// Configuracion inicial de la grafica
 const chart = new Chart(ctx, {
   type: 'line',
   data: {
-    labels: labels,
+    labels,
     datasets: [{
       label: 'CPU °C',
       data: tempData,
@@ -253,95 +385,204 @@ const chart = new Chart(ctx, {
         grid:  { color: 'rgba(255,255,255,0.06)' }
       },
       y: {
-        min: 20,
-        max: 90,
-        ticks: {
-          color: '#b7d6b8',
-          font: { size: 11 },
-          callback: v => v + '°C'
-        },
+        min: 20, max: 90,
+        ticks: { color: '#b7d6b8', font: { size: 11 }, callback: v => v + '°C' },
         grid: { color: 'rgba(255,255,255,0.06)' }
       }
     },
     plugins: {
       legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: ctx => ctx.parsed.y + ' °C'
-        }
-      }
+      tooltip: { callbacks: { label: c => c.parsed.y + ' °C' } }
     }
   }
 });
- 
-// Definimos el color de la grafica en base a la temperatura
+
+// Helpers
 function getTempColor(t) {
   if (t < 50) return '#4CAF50';
   if (t < 65) return '#ff9800';
   return '#f44336';
 }
- 
-// Definimos el estado de la temperatura segun el valor
+
 function getTempLabel(t) {
   if (t < 50) return 'Temperatura normal';
   if (t < 65) return 'Temperatura elevada';
   return 'Temperatura crítica';
 }
- 
-function updateStats() {
-  if (tempData.length === 0) return;
-  const min = Math.min(...tempData);
-  const max = Math.max(...tempData);
-  const avg = Math.round(tempData.reduce((a,b) => a+b, 0) / tempData.length);
+
+function updateBigValue(t) {
+  const el = document.getElementById('temp-value');
+  el.textContent = t !== null ? t : '--';
+  el.style.color  = t !== null ? getTempColor(t) : '#b7d6b8';
+  document.getElementById('temp-status').textContent = t !== null ? getTempLabel(t) : '—';
+}
+
+function updateStats(data) {
+  if (!data.length) return;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const avg = Math.round(data.reduce((a,b) => a+b, 0) / data.length);
   document.getElementById('stat-min').textContent = min + '°';
   document.getElementById('stat-max').textContent = max + '°';
   document.getElementById('stat-avg').textContent = avg + '°';
- 
-  // Ajusta el rango Y dinámicamente
-  chart.options.scales.y.min = Math.max(0,  min - 5);
+  chart.options.scales.y.min = Math.max(0,   min - 5);
   chart.options.scales.y.max = Math.min(100, max + 5);
 }
- 
-// Actualiza la temperatura
-function fetchTemp() {
+
+function setChartColor(t) {
+  const c = getTempColor(t);
+  chart.data.datasets[0].borderColor      = c;
+  chart.data.datasets[0].backgroundColor  = c.replace(')', ',0.1)').replace('rgb','rgba');
+}
+
+function setLoading(on) {
+  document.getElementById('loading').classList.toggle('visible', on);
+}
+
+// Modo
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-realtime').classList.toggle('active', m === 'realtime');
+  document.getElementById('btn-history').classList.toggle('active',  m === 'history');
+  document.getElementById('date-range').classList.toggle('hidden',   m === 'realtime');
+
+  clearChart();
+
+  if (m === 'realtime') {
+    document.getElementById('card-title').textContent = 'CPU Board';
+    startRealtime();
+  } else {
+    stopRealtime();
+    document.getElementById('card-title').textContent = 'Histórico CPU';
+    document.getElementById('temp-status').textContent = 'Selecciona un rango y pulsa Aplicar';
+    document.getElementById('last-update').textContent = '';
+    updateBigValue(null);
+    // Rellenar fecha inicio con hace 24 h por defecto
+    const now = new Date();
+    const yesterday = new Date(now - 24 * 60 * 60 * 1000);
+    document.getElementById('date-from').value = toDatetimeLocal(yesterday);
+    document.getElementById('date-to').value   = '';
+  }
+}
+
+function clearChart() {
+  labels.length   = 0;
+  tempData.length = 0;
+  chart.update();
+}
+
+// Tiempo real
+function startRealtime() {
+  fetchRealtime();
+  realtimeInterval = setInterval(fetchRealtime, 5000);
+}
+
+function stopRealtime() {
+  clearInterval(realtimeInterval);
+  realtimeInterval = null;
+}
+
+function fetchRealtime() {
   fetch('/temperature')
     .then(r => r.json())
     .then(function(data) {
       const t = data.cpu_temp;
       const now = new Date();
-      const timeStr = now.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
- 
-      // Actualiza valor grande
-      const valEl = document.getElementById('temp-value');
-      valEl.textContent = t;
-      valEl.style.color = getTempColor(t);
- 
-      document.getElementById('temp-status').textContent = getTempLabel(t);
+      const timeStr = now.toLocaleTimeString('es-ES', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+
+      updateBigValue(t);
       document.getElementById('last-update').textContent = 'actualizado ' + timeStr;
- 
-      // Añade punto a la gráfica
+
       labels.push(timeStr);
       tempData.push(t);
-      if (labels.length > MAX_POINTS) {
-        labels.shift();
-        tempData.shift();
-      }
- 
-      // Cambia color de la línea según temperatura
-      chart.data.datasets[0].borderColor = getTempColor(t);
-      chart.data.datasets[0].backgroundColor = getTempColor(t).replace(')', ',0.1)').replace('rgb', 'rgba');
- 
+      if (labels.length > MAX_RT_POINTS) { labels.shift(); tempData.shift(); }
+
+      setChartColor(t);
       chart.update();
-      updateStats();
+      updateStats(tempData);
     })
     .catch(function() {
       document.getElementById('temp-status').textContent = 'Error de conexión';
     });
 }
- 
-fetchTemp();
-setInterval(fetchTemp, 5000);
+
+// Histórico
+function toDatetimeLocal(date) {
+  // "YYYY-MM-DDTHH:MM" requerido por input datetime-local
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function loadHistory() {
+  const fromVal = document.getElementById('date-from').value;
+  const toVal   = document.getElementById('date-to').value;
+
+  if (!fromVal) {
+    document.getElementById('temp-status').textContent = 'Indica al menos una fecha de inicio';
+    return;
+  }
+
+  const fromDate = new Date(fromVal);
+  const toDate   = toVal ? new Date(toVal) : new Date();   // vacío = ahora
+
+  if (toDate <= fromDate) {
+    document.getElementById('temp-status').textContent = 'La fecha fin debe ser posterior al inicio';
+    return;
+  }
+
+  // Formato que espera el backend: "YYYY-MM-DD HH:MM:SS" (ISO simplificado)
+  const fmt = d => d.toISOString().replace('T',' ').substring(0,19);
+
+  const url = `/temperature/history?from=${encodeURIComponent(fmt(fromDate))}&to=${encodeURIComponent(fmt(toDate))}`;
+
+  setLoading(true);
+  document.getElementById('temp-status').textContent = 'Cargando…';
+
+  fetch(url)
+    .then(r => r.json())
+    .then(function(data) {
+      setLoading(false);
+
+      if (!data.entries || data.entries.length === 0) {
+        document.getElementById('temp-status').textContent = 'Sin datos en ese rango';
+        document.getElementById('last-update').textContent = '';
+        updateBigValue(null);
+        clearChart();
+        return;
+      }
+
+      clearChart();
+
+      data.entries.forEach(function(e) {
+        // e = { timestamp: "2025-07-10 14:32:05", temp: 42.3 }
+        labels.push(e.timestamp.substring(11, 19));   // solo HH:MM:SS
+        tempData.push(e.temp);
+      });
+
+      const lastTemp = tempData[tempData.length - 1];
+      updateBigValue(lastTemp);
+      setChartColor(lastTemp);
+
+      // Hint con rango real
+      const hint = `${data.entries.length} lecturas · ${data.entries[0].timestamp.substring(0,10)} → ${data.entries[data.entries.length-1].timestamp.substring(0,10)}`;
+      document.getElementById('temp-status').textContent = hint;
+      document.getElementById('last-update').textContent = '';
+      document.getElementById('range-hint').textContent  = `${data.entries.length} puntos`;
+
+      chart.update();
+      updateStats(tempData);
+    })
+    .catch(function() {
+      setLoading(false);
+      document.getElementById('temp-status').textContent = 'Error al cargar histórico';
+    });
+}
+
+// Arranque
+startRealtime();
 </script>
- 
+
 </body>
 </html>

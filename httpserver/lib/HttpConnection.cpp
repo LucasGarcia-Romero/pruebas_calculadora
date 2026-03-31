@@ -1,6 +1,7 @@
 // Expone las rutas publicas
 
 #include "HttpConnection.h"
+#include "temperature_history.h"
 #include "System.h"
 
 #include <array>
@@ -270,6 +271,8 @@ std::string HttpConnection::buildTemperatureJson()
     return "{\"cpu_temp\":" + std::to_string(tempValue) + "}";
 }
 
+
+
 void HttpConnection::parseHttpPacket()
 {
     std::cout << rawHttpPacket << "\n";
@@ -284,8 +287,19 @@ void HttpConnection::parseHttpPacket()
         // Rutas tipo GET
         if (method == "GET")
         {
-            auto url = parameters.find("METHODURL")->second;
+            auto fullUrl = parameters.find("METHODURL")->second;
 
+            // Separar URL del query string
+            std::string url;
+            std::string queryString;
+            size_t qPos = fullUrl.find('?');
+            if (qPos != std::string::npos) {
+                url         = fullUrl.substr(0, qPos);
+                queryString = fullUrl.substr(qPos + 1);
+            } else {
+                url         = fullUrl;
+                queryString = "";
+            }
             if (url.ends_with('/'))
             {
                 url = "/";
@@ -343,15 +357,24 @@ void HttpConnection::parseHttpPacket()
                 return;
             }
 
-            // para medir la temperatura del board
-            if (url == "/temperature") {
-                response.type = mimeTypes["json"];
-                // leemos la temperatura del board
-                response.body = buildTemperatureJson();
-                response.header = createHeader("200 OK", response.type, response.body.length());
+            // para medir la temperatura del board en tiempo real (en desuso)
+            // if (url == "/temperature") {
+            //     response.type = mimeTypes["json"];
+            //     // leemos la temperatura del board
+            //     response.body = buildTemperatureJson();
+            //     response.header = createHeader("200 OK", response.type, response.body.length());
+            //     response.sendBody = true;
+            //     return;
+            // }
+
+            if (url == "/temperature/history") {
+                response.type     = mimeTypes["json"];
+                response.body     = buildTemperatureHistoryJson(queryString, System::dataFilesFolder);
+                response.header   = createHeader("200 OK", response.type, response.body.length());
                 response.sendBody = true;
                 return;
             }
+
         }
         // Rutas tipo POST
         else if (method == "POST")

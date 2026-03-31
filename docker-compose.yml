@@ -21,6 +21,20 @@ services:
       - SLEEPDURATION=10
       - GPIO_PIN=117
 
+  stats:
+    build:
+      context: .
+      dockerfile: stats/Dockerfile
+    container_name: bird-stats
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /data:/data
+    environment:
+      - DATA_DIR=/data
+      - SLEEP_INTERVAL=10
+      - MAX_LINES=8640
+
   server:
     build:
       context: .
