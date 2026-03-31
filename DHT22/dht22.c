@@ -1,73 +1,157 @@
+/*
+ * DHT22 for Raspberry Pi with WiringPi
+ * Original Author: Hyun Wook Choi
+ * Original Version: 0.1.0
+ * Forked from: https://github.com/ccoong7/DHT22
+ */
+
+
 #include <stdio.h>
-#include <unistd.h>
-#include <gpiod.h>
-#include <string.h>
-#include <stdlib.h>
+#include <wiringPi.h>
 
-#define GPIO_CHIP "/dev/gpiochip0"
-#define DHT_LINE 6  // cambia según el pin real (ej. PA6 → línea 6)
+static const int signal = 8;
+unsigned short data[5] = {0, 0, 0, 0, 0};
 
-static int read_dht22(int *humidity, int *temperature)
+
+short readData()
 {
-    struct gpiod_chip *chip;
-    struct gpiod_line *line;
-    unsigned char data[5] = {0};
-    int i = 0, j = 0;
+	unsigned short val = 0x00;
+	unsigned short signal_length = 0;
+	unsigned short val_counter = 0;
+	unsigned short loop_counter = 0;
+	
+	while (1)
+	{
+		// Count only HIGH signal
+		while (digitalRead(signal) == HIGH)
+		{
+			signal_length++;
 
-    chip = gpiod_chip_open(GPIO_CHIP);
-    if (!chip) return -1;
+			// When sending data ends, high signal occur infinite.
+			// So we have to end this infinite loop.
+			if (signal_length >= 200)
+			{
+				return -1;
+			}
 
-    line = gpiod_chip_get_line(chip, DHT_LINE);
-    if (!line) {
-        gpiod_chip_close(chip);
-        return -1;
-    }
+			delayMicroseconds(1);
+		}
 
-    // Enviar señal de inicio
-    gpiod_line_request_output(line, "dht22", 0);
-    usleep(18000);
-    gpiod_line_set_value(line, 1);
-    usleep(40);
-    gpiod_line_release(line);
+		// If signal is HIGH
+		if (signal_length > 0)
+		{
+			loop_counter++;	// HIGH signal counting
 
-    // Leer respuesta
-    gpiod_line_request_input(line, "dht22");
+			// The DHT22 sends a lot of unstable signals.
+			// So extended the counting range.
+			if (signal_length < 10)
+			{
+				// Unstable signal
+				val <<= 1;		// 0 bit. Just shift left
+			}
 
-    // Esperar respuesta del sensor
-    while (gpiod_line_get_value(line) == 1) usleep(1);
-    while (gpiod_line_get_value(line) == 0) usleep(1);
-    while (gpiod_line_get_value(line) == 1) usleep(1);
+			else if (signal_length < 30)
+			{
+				// 26~28us means 0 bit
+				val <<= 1;		// 0 bit. Just shift left
+			}
 
-    // Leer 40 bits (5 bytes)
-    for (i = 0; i < 40; i++) {
-        while (gpiod_line_get_value(line) == 0) usleep(1);
-        usleep(30);
-        if (gpiod_line_get_value(line) == 1)
-            data[i / 8] |= (1 << (7 - (i % 8)));
-        while (gpiod_line_get_value(line) == 1) usleep(1);
-    }
+			else if (signal_length < 85)
+			{
+				// 70us means 1 bit
+				// Shift left and input 0x01 using OR operator
+				val <<= 1;
+				val |= 1;
+			}
 
-    gpiod_line_release(line);
-    gpiod_chip_close(chip);
+			else
+			{
+				// Unstable signal
+				return -1;
+			}
 
-    // Calcular checksum
-    if ((unsigned char)(data[0] + data[1] + data[2] + data[3]) != data[4])
-        return -2;
+			signal_length = 0;	// Initialize signal length for next signal
+			val_counter++;		// Count for 8 bit data
+		}
 
-    *humidity = ((data[0] << 8) + data[1]);
-    *temperature = ((data[2] & 0x7F) << 8) + data[3];
-    if (data[2] & 0x80)
-        *temperature *= -1;
-    return 0;
+		// The first and second signal is DHT22's start signal.
+		// So ignore these data.
+		if (loop_counter < 3)
+		{
+			val = 0x00;
+			val_counter = 0;
+		}
+
+		// If 8 bit data input complete
+		if (val_counter >= 8)
+		{
+			// 8 bit data input to the data array
+			data[(loop_counter / 8) - 1] = val;
+
+			val = 0x00;
+			val_counter = 0;
+		}
+	}
 }
+
 
 int main(void)
 {
-    int hum = 0, temp = 0;
-    int res = read_dht22(&hum, &temp);
-    if (res == 0)
-        printf("Temperature: %.1f°C, Humidity: %.1f%%\n", temp / 10.0, hum / 10.0);
-    else
-        fprintf(stderr, "Error reading DHT22 (%d)\n", res);
-    return 0;
+	float humidity;
+	float celsius;
+	float fahrenheit;
+	short checksum;
+	int correct=0; 
+	// GPIO Initialization
+	if (wiringPiSetup() == -1)
+	{
+		printf("[x_x] GPIO Initialization FAILED.\n");
+		return -1;
+	}
+	printf("conectado\n");
+	while(!correct)
+	{
+
+		pinMode(8, OUTPUT);
+		digitalWrite(signal, LOW);
+		delay(18);
+		//digitalWrite(signal, HIGH);
+		//delay(20);		// Stay LOW for 5~30 milliseconds
+		pinMode(8, INPUT);		// 'INPUT' equals 'HIGH' level. And signal read mode
+	
+		readData();
+		printf("0x%x 0x%x 0x%x 0x%x 0x%x\n",data[0],data[1],data[2],data[3],data[4]);
+
+		checksum = (data[0] + data[1] + data[2] + data[3]) & 0xFF;
+			// If Check-sum data is correct (NOT 0x00), display humidity and temperature
+		correct=( data[4] == checksum && checksum != 0x00);
+		if (correct)
+		{
+			// * 256 is the same thing '<< 8' (shift).
+			humidity = ((data[0] * 256) + data[1]) / 10.0;
+			
+			// found that with the original code at temperatures > 25.4 degrees celsius
+			// the temperature would print 0.0 and increase further from there.
+			// Eventually when the actual temperature drops below 25.4 again
+			// it would print the temperature as expected.
+			// Some research and comparisin with other C implementation suggest a
+			// different calculation of celsius.
+			//celsius = data[3] / 10.0; //original
+			celsius = (((data[2] & 0x7F)*256) + data[3]) / 10.0; //Juergen Wolf-Hofer
+
+			// If 'data[2]' data like 1000 0000, It means minus temperature
+			if (data[2] == 0x80)
+			{
+				celsius *= -1;
+			}
+			// Display all data
+			printf("%6.2f %6.2f\n", celsius, humidity);
+		}
+		for (unsigned char i = 0; i < 5; i++)
+		{
+			data[i] = 0;
+		}
+	}
+
+	return 0;
 }
