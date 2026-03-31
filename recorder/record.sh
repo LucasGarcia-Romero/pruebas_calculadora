@@ -12,6 +12,23 @@ IDRECORDER="${IDRECORDER:-1}"
 SLEEPDURATION="${SLEEPDURATION:-10}"
 GPIO_PIN="${GPIO_PIN:-117}"
 
+# --- Cargar config externa si existe ---
+CONFIG_FILE="${DATA_DIR}/config.txt"
+if [ -f "$CONFIG_FILE" ]; then
+    while IFS='=' read -r key value; do
+        case "$key" in
+            STATION)       STATION="$value" ;;
+            BITRATE)       BITRATE="$value" ;;
+            SAMPLE_RATE)   SAMPLE_RATE="$value" ;;
+            GAIN)          GAIN="$value" ;;
+            DURATION)      DURATION="$value" ;;
+            IDRECORDER)    IDRECORDER="$value" ;;
+            SLEEPDURATION) SLEEPDURATION="$value" ;;
+            GPIO_PIN)      GPIO_PIN="$value" ;;
+        esac
+    done < "$CONFIG_FILE"
+fi
+
 # (opcionales si reactivas envíos)
 IPSERVER="${IPSERVER:-10.4.117.10}"
 USER="${USER:-utad}"

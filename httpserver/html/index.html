@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+	<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
@@ -57,12 +57,18 @@ body{
 .brand-badge{
   width:52px;
   height:52px;
-  display:grid;
-  place-items:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   border-radius:14px;
+  background:rgba(0,0,0,0.35);
+  border:1px solid rgba(255,255,255,0.2);
+}
 
-  background:linear-gradient(135deg,var(--accent),var(--accent-dark));
-  font-size:24px;
+.brand-badge img{
+  width:32px;
+  height:32px;
+  object-fit:contain;
 }
 
 .brand h1{
@@ -78,9 +84,16 @@ body{
 .status-pill{
   padding:8px 14px;
   border-radius:999px;
-
   background:rgba(76,175,80,0.2);
   border:1px solid rgba(76,175,80,0.4);
+  font-size:14px;
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.status-pill.error {
+  background: rgba(229,57,53,0.2);
+  border-color: rgba(229,57,53,0.4);
+  color: #ff8a80;
 }
 
 .hero{
@@ -141,6 +154,20 @@ body{
   padding:20px;
 }
 
+.panel h3 {
+  margin: 0 0 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel h3 .refresh-hint {
+  font-size: 11px;
+  font-weight: normal;
+  color: var(--muted);
+  opacity: 0.7;
+}
+
 .mini-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -156,11 +183,50 @@ body{
 .metric .label{
   font-size:13px;
   color:var(--muted);
+  margin-bottom:4px;
 }
 
 .metric .value{
-  font-size:24px;
+  font-size:22px;
   font-weight:bold;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+/* Indicador de punto de color */
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.dot-ok    { background: #4caf50; box-shadow: 0 0 8px rgba(76,175,80,0.7); }
+.dot-warn  { background: #ff9800; box-shadow: 0 0 8px rgba(255,152,0,0.7); }
+.dot-error { background: #f44336; box-shadow: 0 0 8px rgba(244,67,54,0.7); }
+.dot-gray  { background: #888; }
+
+/* Fila del archivo activo */
+.current-file-row {
+  margin-top: 14px;
+  padding: 12px 15px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  word-break: break-all;
+}
+
+.current-file-row strong {
+  color: var(--text);
+  font-weight: normal;
+  flex: 1;
 }
 
 .section-title{
@@ -203,31 +269,8 @@ body{
 }
 
 @media(max-width:900px){
-
-.hero{
-  grid-template-columns:1fr;
-}
-
-.menu-grid{
-  grid-template-columns:1fr;
-}
-
-}
-.brand-badge {
-  width:52px;
-  height:52px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:14px;
-  background:rgba(0,0,0,0.35);
-  border:1px solid rgba(255,255,255,0.2);
-}
-
-.brand-badge img{
-  width:32px;
-  height:32px;
-  object-fit:contain;
+  .hero{ grid-template-columns:1fr; }
+  .menu-grid{ grid-template-columns:1fr 1fr; }
 }
 
 </style>
@@ -238,124 +281,168 @@ body{
 <div class="wrapper">
 
 <header class="topbar">
-
-<div class="brand">
-<style>
-
-</style>
-
-<div class="brand-badge">
-  <img src="favicon.ico" alt="logo">
-</div>
-
-<div>
-<h1>Bird Recorder</h1>
-<p>Panel principal de la estación de grabación</p>
-</div>
-
-</div>
-
-<div class="status-pill">● Sistema operativo</div>
-
+  <div class="brand">
+    <div class="brand-badge">
+      <img src="favicon.ico" alt="logo">
+    </div>
+    <div>
+      <h1>Bird Recorder</h1>
+      <p>Panel principal de la estación de grabación</p>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="status-pill" id="system-pill">● Conectando…</div>
+    <button onclick="logout()" style="
+      padding:8px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.2);
+      background:rgba(255,255,255,0.07);
+      color:var(--muted);
+      font-size:14px;
+      cursor:pointer;
+      transition:background 0.2s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.13)'"
+       onmouseout="this.style.background='rgba(255,255,255,0.07)'">
+      Cerrar sesión
+    </button>
+  </div>
 </header>
 
 
 <section class="hero">
 
-<div class="hero-card">
-
-<h2>Centro de control</h2>
-
-<p>
-Accede rápidamente a las grabaciones generadas por la Orange Pi o revisa
-el estado actual del sistema de grabación.
-</p>
-
-<div class="hero-actions">
-
-<a class="btn btn-primary" href="/recordings.html">
-Ver grabaciones
-</a>
-
-<a class="btn btn-secondary" href="/status.html">
-Ver estado
-</a>
-
-</div>
-
-</div>
+  <div class="hero-card">
+    <h2>Centro de control</h2>
+    <p>
+      Accede rápidamente a las grabaciones generadas por la Orange Pi o revisa
+      el estado actual del sistema de grabación.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="/recordings.html">Ver grabaciones</a>
+      <a class="btn btn-secondary" href="/status.html">Ver estado</a>
+    </div>
+  </div>
 
 
-<aside class="panel">
+  <aside class="panel">
+    <h3>
+      Resumen
+      <span class="refresh-hint" id="last-update">actualizando…</span>
+    </h3>
 
-<h3>Resumen</h3>
+    <div id="m-global" style="
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:18px 20px;
+      border-radius:14px;
+      background:rgba(255,255,255,0.05);
+      font-size:18px;
+      font-weight:bold;
+    ">
+      <span class="dot dot-gray" id="m-dot"></span>
+      <span id="m-label">Conectando…</span>
+    </div>
 
-<div class="mini-grid">
+    <div class="current-file-row" id="m-file">
+      <span style="opacity:0.5">Sin archivo activo</span>
+    </div>
 
-<div class="metric">
-<div class="label">Estado</div>
-<div class="value">OK</div>
-</div>
-
-<div class="metric">
-<div class="label">Puerto</div>
-<div class="value">8000</div>
-</div>
-
-<div class="metric">
-<div class="label">Audio</div>
-<div class="value">WAV</div>
-</div>
-
-<div class="metric">
-<div class="label">Datos</div>
-<div class="value">/data</div>
-</div>
-
-</div>
-
-</aside>
+  </aside>
 
 </section>
+
 
 <section class="menu-grid">
 
-<a class="nav-card" href="/recordings.html">
+  <a class="nav-card" href="/config.html">
+    <div class="nav-icon">⚙️</div>
+    <h3>Configuración</h3>
+    <p>Ajusta los parámetros de grabación de la estación.</p>
+    <span class="nav-link">Abrir ajustes →</span>
+  </a>
 
-<div class="nav-icon">🎧</div>
-
-<h3>Grabaciones</h3>
-
-<p>
-Explora todos los archivos de audio capturados por la grabadora.
-</p>
-
-<span class="nav-link">
-Abrir biblioteca →
-</span>
-
-</a>
-
-
-<a class="nav-card" href="/status.html">
-
-<div class="nav-icon">📊</div>
-
-<h3>Estado</h3>
-
-<p>
-Consulta el estado del sistema, grabación y contenedores.
-</p>
-
-<span class="nav-link">
-Abrir panel →
-</span>
-
-</a>
+  <a class="nav-card" href="/temperature.html">
+    <div class="nav-icon">🌡️</div>
+    <h3>Temperatura</h3>
+    <p>Monitor de temperatura de la CPU de la Orange Pi.</p>
+    <span class="nav-link">Ver gráfica →</span>
+  </a>
 
 </section>
 
 </div>
+
+<script>
+// Comprueba sesión antes de mostrar nada
+(function() {
+  var hasCookie = document.cookie.split(';').some(function(c) {
+    return c.trim().startsWith('birdsession=');
+  });
+  if (!hasCookie) window.location.href = '/login.html';
+})();
+
+function logout() {
+  document.cookie = 'birdsession=; path=/; max-age=0';
+  window.location.href = '/login.html';
+}
+
+const pill    = document.getElementById('system-pill');
+const lastUpd = document.getElementById('last-update');
+const mDot    = document.getElementById('m-dot');
+const mLabel  = document.getElementById('m-label');
+const mFile   = document.getElementById('m-file');
+
+function updateStatus(data) {
+  const allOk = data.container_running && data.record_running && data.sox_running;
+  const anyOk = data.container_running || data.record_running;
+
+  if (allOk) {
+    mDot.className   = 'dot dot-ok';
+    mLabel.textContent = 'Grabando';
+    pill.textContent = '● Sistema operativo';
+    pill.className   = 'status-pill';
+    pill.style.cssText = '';
+  } else if (anyOk) {
+    mDot.className   = 'dot dot-warn';
+    mLabel.textContent = 'Grabación detenida';
+    pill.textContent = '● Grabación detenida';
+    pill.className   = 'status-pill';
+    pill.style.background   = 'rgba(255,152,0,0.2)';
+    pill.style.borderColor  = 'rgba(255,152,0,0.4)';
+    pill.style.color        = '#ffcc80';
+  } else {
+    mDot.className   = 'dot dot-error';
+    mLabel.textContent = 'Sistema inactivo';
+    pill.textContent = '● Sistema inactivo';
+    pill.className   = 'status-pill error';
+    pill.style.cssText = '';
+  }
+
+  if (data.current_file) {
+    mFile.innerHTML = '<span style="opacity:0.6;flex-shrink:0">Archivo:</span><strong>' + data.current_file + '</strong>';
+  } else {
+    mFile.innerHTML = '<span style="opacity:0.5">Sin archivo activo</span>';
+  }
+
+  const now = new Date();
+  lastUpd.textContent = 'actualizado ' + now.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+
+function fetchStatus() {
+  fetch('/status')
+    .then(r => r.json())
+    .then(data => updateStatus(data))
+    .catch(() => {
+      pill.textContent = '● Sin conexión';
+      pill.className = 'status-pill error';
+      lastUpd.textContent = 'error de conexión';
+    });
+}
+
+fetchStatus();
+setInterval(fetchStatus, 5000);
+</script>
 
 </body>
 </html>

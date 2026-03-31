@@ -1,13 +1,43 @@
 #include "PostMethod.h"
 #include "System.h"
 #include "Json.hpp"
+#include <openssl/sha.h>
+#include <iomanip>
+#include <sstream>
+
+// funcion para el hasheo de la contraseña por medio de sha256
+static std::string sha256(const std::string& input)
+{
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256(reinterpret_cast<const unsigned char*>(input.c_str()), input.size(), hash);
+    std::ostringstream oss;
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+        oss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+    return oss.str();
+}
 
 string Login::exec(string params)
 {
-	return "";
+    string user     = getPostParam(params, "user");
+    string password = getPostParam(params, "pass");
+    string passHash = sha256(password);
+
+    std::ifstream file(System::dataFilesFolder + "/credentials.txt");
+    if (!file.is_open())
+        return "{\"ok\":false,\"error\":\"no credentials file\"}";
+
+    std::string line;
+    while (std::getline(file, line))
+    {
+        size_t sep = line.find(':');
+        if (sep == std::string::npos) continue;
+        string fileUser = line.substr(0, sep);
+        string fileHash = line.substr(sep + 1);
+        if (fileUser == user && fileHash == passHash)
+            return "{\"ok\":true}";
+    }
+    return "{\"ok\":false}";
 }
-
-
 
 string ListWavFiles::exec(string params)
 {
@@ -103,4 +133,87 @@ string RecordData::exec(string params)
 	outfile << "\n";
 	outfile.close();
 	return "OK";
+}
+
+// implementación de la logica para get/post de los parametros de configuración
+static std::string escapeJson(const std::string& s)
+{
+    std::string out;
+    for (char c : s) {
+        switch (c) {
+        case '\"': out += "\\\""; break;
+        case '\\': out += "\\\\"; break;
+        case '\b': out += "\\b";  break;
+        case '\f': out += "\\f";  break;
+        case '\n': out += "\\n";  break;
+        case '\r': out += "\\r";  break;
+        case '\t': out += "\\t";  break;
+        default:   out += c;      break;
+        }
+    }
+    return out;
+}
+
+string GetConfig::exec(string params)
+{
+    std::map<std::string, std::string> defaults = {
+        {"STATION",       "TECHOUTAD_"},
+        {"BITRATE",       "16"},
+        {"SAMPLE_RATE",   "32000"},
+        {"GAIN",          "5.0"},
+        {"DURATION",      "60"},
+        {"IDRECORDER",    "1"},
+        {"SLEEPDURATION", "10"},
+        {"GPIO_PIN",      "117"}
+    };
+
+    // Sobreescribe con lo que haya en config.txt
+    std::ifstream file(System::dataFilesFolder + "/config.txt");
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            size_t sep = line.find('=');
+            if (sep == std::string::npos) continue;
+            std::string key = line.substr(0, sep);
+            std::string val = line.substr(sep + 1);
+            if (defaults.count(key)) defaults[key] = val;
+        }
+    }
+
+    std::string json = "{";
+    bool first = true;
+    for (auto& kv : defaults) {
+        if (!first) json += ",";
+        json += "\"" + kv.first + "\":\"" + escapeJson(kv.second) + "\"";
+        first = false;
+    }
+    json += "}";
+    return json;
+}
+
+string SaveConfig::exec(string params)
+{
+    const std::vector<std::string> keys = {
+        "STATION", "BITRATE", "SAMPLE_RATE", "GAIN",
+        "DURATION", "IDRECORDER", "SLEEPDURATION", "GPIO_PIN"
+    };
+
+    std::ofstream file(System::dataFilesFolder + "/config.txt", std::ios::trunc);
+    if (!file.is_open())
+        return "{\"ok\":false,\"error\":\"cannot write config\"}";
+
+    for (auto& key : keys) {
+        std::string val = getPostParam(params, key);
+        if (!val.empty())
+            file << key << "=" << val << "\n";
+    }
+    file.close();
+
+    // Reinicia el contenedor recorder en background
+    std::thread([]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        system("docker restart bird-recorder");
+    }).detach();
+
+    return "{\"ok\":true}";
 }

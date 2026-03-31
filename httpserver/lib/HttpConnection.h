@@ -39,12 +39,12 @@ private:
     std::string escapeJson(const std::string& s);
     std::string extractWavName(const std::string& text);
     std::string buildStatusJson();
+    std::string buildTemperatureJson();
 
 public:
-    HttpConnection(int id, connection_t conn) :id(id), conn(conn) {
+    HttpConnection(int id, connection_t conn, std::map<std::string, PostMethod*> methods)
+        :id(id), conn(conn), postMethods(methods) {
         buildMimeTypes();
-        postMethods["/listFiles"] = new ListFiles();
-        postMethods["/recordData"] = new RecordData();
     }
 
     void parseLine(std::string& line);

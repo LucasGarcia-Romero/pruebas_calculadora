@@ -254,6 +254,17 @@ std::string HttpConnection::buildStatusJson()
     return json;
 }
 
+std::string HttpConnection::buildTemperatureJson()
+{
+    std::string tempStr = trim(runCommand("cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null"));
+    
+    int tempValue = 0;
+    if (!tempStr.empty())
+        tempValue = std::stoi(tempStr) / 1000;
+
+    return "{\"cpu_temp\":" + std::to_string(tempValue) + "}";
+}
+
 void HttpConnection::parseHttpPacket()
 {
     std::cout << rawHttpPacket << "\n";
@@ -314,6 +325,25 @@ void HttpConnection::parseHttpPacket()
             {
                 response.header = createHeader("200 OK", response.type, response.body.length());
                 response.sendBody = true;
+            }
+            
+            // archivos de configuración
+            // Crea lama a exec que le el config.txt
+            if (url == "/config") {
+                response.type = mimeTypes["json"];
+                response.body = postMethods["/getConfig"]->exec("");
+                response.header = createHeader("200 OK", response.type, response.body.length());
+                response.sendBody = true;
+                return;
+            }
+
+            // para medir la temperatura del board
+            if (url == "/temperature") {
+                response.type = mimeTypes["json"];
+                response.body = buildTemperatureJson();
+                response.header = createHeader("200 OK", response.type, response.body.length());
+                response.sendBody = true;
+                return;
             }
         }
         else if (method == "POST")

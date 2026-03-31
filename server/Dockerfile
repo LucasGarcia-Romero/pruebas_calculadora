@@ -14,13 +14,23 @@ WORKDIR /app
 # Código del servidor
 COPY httpserver/ /app/
 
+# servidor openSSL para el haseo y comprobacion de contraseña
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    g++ \
+    make \
+    ca-certificates \
+    docker.io \
+    libssl-dev \
+ && rm -rf /var/lib/apt/lists/*
+
 # Compilar el binario
 RUN g++ -O2 -std=c++20 \
     mHttpServer.cpp \
     lib/HttpServer.cpp \
     lib/HttpConnection.cpp \
     lib/PostMethod.cpp \
-    -o /usr/local/bin/mHttpServer
+    -o /usr/local/bin/mHttpServer \
+    -lssl -lcrypto
 
 EXPOSE 8000
 

@@ -1,64 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
 <head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bird Recorder — Acceso</title>
+ 
 <style>
-#popup {
-    width:160px;
-    height:160px;
-    padding:20px;
-    background-color:gray;    
-    position:absolute;
-    top:0px;
-    left:0px;
-    display:block;
+:root {
+  --card: rgba(0,0,0,0.55);
+  --card-border: rgba(255,255,255,0.15);
+  --text: #e8f5e9;
+  --muted: #b7d6b8;
+  --accent: #4CAF50;
+  --accent-dark: #2e7d32;
+  --shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
+ 
+* { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background:
+    linear-gradient(rgba(0,0,0,0.60), rgba(0,0,0,0.60)),
+    url("fondo.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+ 
+.login-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 40px;
+  width: 100%;
+  max-width: 380px;
+}
+ 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 32px;
+}
+ 
+.brand-badge {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+ 
+.brand-badge img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+ 
+.brand h1 {
+  font-size: 20px;
+  margin-bottom: 2px;
+}
+ 
+.brand p {
+  font-size: 13px;
+  color: var(--muted);
+}
+ 
+.field {
+  margin-bottom: 18px;
+}
+ 
+.field label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+ 
+.field input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.07);
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+ 
+.field input:focus {
+  border-color: var(--accent);
+}
+ 
+.field input::placeholder {
+  color: rgba(255,255,255,0.25);
+}
+ 
+.btn-login {
+  width: 100%;
+  padding: 13px;
+  margin-top: 8px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+ 
+.btn-login:hover  { background: #43a047; }
+.btn-login:active { transform: scale(0.98); }
+.btn-login:disabled { background: #2e5c30; cursor: not-allowed; opacity: 0.7; }
+ 
+.error-msg {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(244,67,54,0.15);
+  border: 1px solid rgba(244,67,54,0.35);
+  color: #ff8a80;
+  font-size: 13px;
+  display: none;
+}
+ 
+.error-msg.visible { display: block; }
 </style>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-
-<script>
-    function done() { 
-		//document.getElementById("popup").style.display = "none";
-		var vuser = document.getElementById("user").value;
-		var vpassword = document.getElementById("pass").value;
-
-
-		var vres="";
-		var asd=$.post(
-		"/calculadora",
-
-			{user:vuser,pass:vpassword},
-			function(data) {
-			   alert('page content: ' );
-			  
-			}
-		)
-		  .done(function() {
-			alert( "second success" );
-		  })
-		  .fail(function(xhr, status, error) {
-			alert( error );
-		  })
-		  
-		asd.always(function() {
-		alert( "second finished" );
-		});
-
-    //DO STUFF WITH PASSWORD HERE
-	};
-
-	function showPopup() {
-		 document.getElementById("popup").style.display = "block";
-	}
-	function setCookie(){
-            var exdate = new Date();
-            document.cookie = "BIRDEEPSESSION=birdeep";
-    }
-</script>
 </head>
+ 
 <body>
-
-	<div id="popup">
-		<div>Enter Password:</div>
-        <p> User<input id="user" type="input"/></p>
-		<p> Password<input id="pass" type="password"/></p>
-		<button onclick="done()">Done</button>    
-	</div>
+ 
+<div class="login-card">
+ 
+  <div class="brand">
+    <div class="brand-badge">
+      <img src="favicon.ico" alt="logo">
+    </div>
+    <div>
+      <h1>Bird Recorder</h1>
+      <p>Introduce tus credenciales</p>
+    </div>
+  </div>
+ 
+  <div class="field">
+    <label for="user">Usuario</label>
+    <input id="user" type="text" placeholder="orangepi" autocomplete="username" />
+  </div>
+ 
+  <div class="field">
+    <label for="pass">Contraseña</label>
+    <input id="pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+  </div>
+ 
+  <button class="btn-login" id="btn" onclick="doLogin()">Entrar</button>
+ 
+  <div class="error-msg" id="error-msg">
+    Usuario o contraseña incorrectos.
+  </div>
+ 
+</div>
+ 
+<script>
+  // Permitir enviar con Enter
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
+  });
+ 
+  function doLogin() {
+    var user = document.getElementById('user').value.trim();
+    var pass = document.getElementById('pass').value;
+    var btn  = document.getElementById('btn');
+    var err  = document.getElementById('error-msg');
+ 
+    if (!user || !pass) return;
+ 
+    btn.disabled = true;
+    btn.textContent = 'Verificando…';
+    err.classList.remove('visible');
+ 
+    fetch('/calculadora', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'user=' + encodeURIComponent(user) + '&pass=' + encodeURIComponent(pass)
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        document.cookie = 'birdsession=1; path=/; max-age=86400'; // 24h
+        window.location.href = '/index.html';
+      } else {
+        err.classList.add('visible');
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+      }
+    })
+    .catch(() => {
+      err.textContent = 'Error de conexión.';
+      err.classList.add('visible');
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+    });
+  }
+</script>
+ 
 </body>
+</html>

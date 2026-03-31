@@ -10,26 +10,32 @@ public:
 	PostMethod(std::string name):name(name) {};
 
 	virtual string exec(string params)=0;
-	static string getPostParam(string paramList,string paramName) {
-		size_t paramIdx = paramList.find_first_of(paramName+'=', 0);
+	static string getPostParam(string paramList, string paramName) {
+		std::string search = paramName + "=";
+		size_t paramIdx = paramList.find(search);
 
-		if (paramIdx == std::string::npos)return "";
+		// Verificar que está al inicio o tras "&"
+		while (paramIdx != std::string::npos) {
+			if (paramIdx == 0 || paramList[paramIdx - 1] == '&')
+				break;
+			paramIdx = paramList.find(search, paramIdx + 1);
+		}
 
-		size_t paramEndIdx = paramList.find_first_of('&', paramIdx);
-		if (paramEndIdx == string::npos)paramEndIdx = paramList.length();
+		if (paramIdx == std::string::npos) return "";
 
-		string paramPair = paramList.substr(paramIdx, paramEndIdx - paramIdx);
-		std::string value = paramPair.substr(paramPair.find_first_of('=', 0) + 1, paramPair.length());
+		size_t valueStart = paramIdx + search.size();
+		size_t valueEnd   = paramList.find('&', valueStart);  // find(), no find_first_of()
+		if (valueEnd == std::string::npos) valueEnd = paramList.size();
 
-		return value;
-	};
+		return paramList.substr(valueStart, valueEnd - valueStart);
+	}
 };
 
 class Login : public PostMethod
 {
 public:
-	virtual string exec(string params) override;
-
+    Login() :PostMethod("/calculadora") { };
+    virtual string exec(string params) override;
 };
 
 class ListWavFiles : public PostMethod
@@ -53,4 +59,17 @@ public:
 	RecordData() :PostMethod("/recordData") { };
 	virtual string exec(string params) override;
 
+};
+
+// clases para la configuración parametros de grabación
+class GetConfig : public PostMethod {
+public:
+    GetConfig() :PostMethod("/getConfig") { };
+    virtual string exec(string params) override;
+};
+
+class SaveConfig : public PostMethod {
+public:
+    SaveConfig() :PostMethod("/saveConfig") { };
+    virtual string exec(string params) override;
 };
